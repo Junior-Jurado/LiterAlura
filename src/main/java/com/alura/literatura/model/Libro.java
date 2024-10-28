@@ -10,17 +10,17 @@ public class Libro {
     private long id;
     @Column(unique = true)
     private String titulo;
-    private String autor;
     private String idioma;
     private Integer numeroDeDescargas;
+    @ManyToOne
+    private Autor autor;
 
     public Libro() {}
 
-    public Libro(DatosLibro datosLibro) {
+    public Libro(Long idAutor, DatosLibro datosLibro) {
         this.titulo = datosLibro.titulo();
-        if(datosLibro.autores() != null && !datosLibro.autores().isEmpty()) {
-            this.autor = datosLibro.autores().get(0).nombre();
-        }
+        this.autor = new Autor();
+        this.autor.setId(idAutor);
         if(datosLibro.idiomas() != null && !datosLibro.idiomas().isEmpty()) {
             this.idioma = datosLibro.idiomas().get(0);
         }
@@ -43,14 +43,6 @@ public class Libro {
         this.titulo = titulo;
     }
 
-    public String getAutor() {
-        return autor;
-    }
-
-    public void setAutor(String autor) {
-        this.autor = autor;
-    }
-
     public String getIdioma() {
         return idioma;
     }
@@ -65,6 +57,14 @@ public class Libro {
 
     public void setNumeroDeDescargas(Integer numeroDeDescargas) {
         this.numeroDeDescargas = numeroDeDescargas;
+    }
+
+    public Autor getAutor() {
+        return autor;
+    }
+
+    public void setAutor(Autor autor) {
+        this.autor = autor;
     }
 
     @Override
