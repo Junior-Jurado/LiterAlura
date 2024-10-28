@@ -32,6 +32,11 @@ public class Principal {
                     3 - Listar autores registrados
                     4 - Listar autores vivos en un determinado año
                     5 - Listar libros por idioma
+                    6 - Estadísticas
+                    7 - Top 10 libros más descargados
+                    8 - Buscar autor por nombre
+                    9 - Listar autores por orden de nacimiento
+                    
                     
                     0 - SALIR
                     """;
@@ -54,6 +59,18 @@ public class Principal {
                     break;
                 case 5:
                     listarLibrosPorIdioma();
+                    break;
+                case 6:
+                    estadisticasLibro();
+                    break;
+                case 7:
+                    top10LibrosMasDescargados();
+                    break;
+                case 8:
+                    buscarAutorPorNombre();
+                    break;
+                case 9:
+                    listarAutoresPorOrdenNacimiento();
                     break;
                 case 0:
                     System.out.println("Cerrando la aplicación...");
@@ -149,6 +166,17 @@ public class Principal {
 
         mostrarLibros(libros);
     }
+    private void top10LibrosMasDescargados() {
+        List<Object[]> libros = repositorio.top10LibrosMasDescargados();
+
+        if (libros.isEmpty()) {
+            System.out.println("No hay libros registrados.");
+            return;
+        }
+
+        System.out.println("*********************** TOP 10 MÁS LIBROS DESCARGADOS ***********************");
+        mostrarLibros(libros);
+    }
 
     private void mostrarLibros(List<Object[]> libros) {
         libros.forEach(libro -> {
@@ -162,6 +190,7 @@ public class Principal {
         });
     }
 
+    // *************************************************************************************************************
 
     private void listarAutoresRegistrados() {
         List<Autor> autores = repositorio.obtenerAutores();
@@ -190,6 +219,34 @@ public class Principal {
         autores.forEach(this::imprimirAutor);
     }
 
+    private void buscarAutorPorNombre() {
+        System.out.println("Ingrese el nombre del autor que desea buscar");
+        String nombre = teclado.nextLine();
+
+        List<Autor> autores = repositorio.buscarAutorPorNombre(nombre);
+
+        if (autores.isEmpty()) {
+            System.out.println("**********************************************************************************");
+            System.out.printf("No hay ningún autor registrado con el nombre %s hasta el momento. \n", nombre);
+            return;
+        }
+
+        autores.forEach(this::imprimirAutor);
+    }
+
+    private void listarAutoresPorOrdenNacimiento() {
+
+        List<Autor> autores = repositorio.listarPorOrdenNacimiento();
+
+        if (autores.isEmpty()) {
+            System.out.println("**********************************************************************************");
+            System.out.printf("No hay ningún autor registrado hasta el momento. \n");
+            return;
+        }
+
+        autores.forEach(this::imprimirAutor);
+    }
+
     private void imprimirAutor(Autor autor) {
         System.out.println("\n****************  AUTOR  ****************");
         System.out.printf("Autor: \t%s\n", autor.getAutor());
@@ -201,7 +258,28 @@ public class Principal {
         System.out.println("*****************************************\n");
     }
 
+    private void estadisticasLibro() {
+        List<Object[]> libros = repositorio.obtenerLibros();
 
+        List<Libro> listaLibros = libros.stream()
+                .map(libro -> (Libro) libro[0])
+                .collect(Collectors.toList());
 
+        Map<Autor, Double> evaluacionPorAutor = listaLibros.stream()
+                .collect(Collectors.groupingBy(
+                        Libro::getAutor,
+                        Collectors.averagingInt(Libro::getNumeroDeDescargas)
+                ));
+
+        DoubleSummaryStatistics est = listaLibros.stream()
+                .collect(Collectors.summarizingDouble(Libro::getNumeroDeDescargas));
+
+        System.out.println("Media de descargas: " + est.getAverage());
+        System.out.println("Número de descargas máxima en un libro: " + est.getMax());
+        System.out.println("Número de descargas mínima en un libro: " + est.getMin());
+
+        evaluacionPorAutor.forEach((autor, promedio) ->
+                System.out.printf("Autor: %s, Promedio de Descargas: %.2f%n", autor.getAutor(), promedio));
+    }
 
 }
